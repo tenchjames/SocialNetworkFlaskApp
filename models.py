@@ -32,7 +32,7 @@ class User(UserMixin, Model):
 
 
 
-def initialize(self):
+def initialize():
     DATABASE.connect()
     DATABASE.create_tables([User], safe=True)
     DATABASE.close()

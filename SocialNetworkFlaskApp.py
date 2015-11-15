@@ -1,8 +1,9 @@
-from flask import Flask, g
+from flask import (Flask, g, render_template, flash, redirect, url_for)
 
 from flask.ext.login import LoginManager
 
 import models
+import forms
 
 DEBUG = True
 PORT = 8000
@@ -35,15 +36,31 @@ def after_request(response):
     return response
 
 
-@app.route('/')
-def hello_world():
-    return 'Hello World!'
+@app.route('/register', methods=('GET', 'POST'))
+def register():
+    form = forms.RegisterForm()
+    if form.validate_on_submit():
+        flash("Thanks for registering!", "success")
+        models.User.create_user(
+            username=form.username.data,
+            email=form.username.data,
+            password=form.password.data
+        )
+        return redirect(url_for('index'))
+    return render_template('register.html', form=form)
 
+
+@app.route('/')
+def index():
+    return "Placeholder text"
 
 if __name__ == '__main__':
     models.initialize()
-    models.User.create_user(username='jamestench',
-                            email='tenchjames@gmail.com',
-                            password='password',
-                            admin=True)
+    try:
+        models.User.create_user(username='jamestench',
+                                email='tenchjames@gmail.com',
+                                password='password',
+                                admin=True)
+    except ValueError:
+        pass
     app.run(debug=DEBUG, host=HOST, port=PORT)

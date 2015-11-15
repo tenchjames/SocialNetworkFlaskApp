@@ -36,7 +36,7 @@ class RegisterForm(Form):
             Email(),
             email_exists
         ]
-    ),
+    )
     password = PasswordField(
         'Password',
         validators=[
@@ -44,8 +44,8 @@ class RegisterForm(Form):
             Length(min=8),
             EqualTo('password2', message='Passwords must match')
         ]
-    ),
-    passwors2 = PasswordField(
+    )
+    password2 = PasswordField(
         'Confirm Password',
         validators=[
             DataRequired()
