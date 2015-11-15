@@ -7,6 +7,7 @@ from peewee import *
 
 DATABASE = SqliteDatabase('social.db')
 
+
 class User(UserMixin, Model):
     username = CharField(unique=True)
     email = CharField(unique=True)
@@ -31,8 +32,8 @@ class User(UserMixin, Model):
             raise ValueError("User already exists")
 
 
-
 def initialize():
     DATABASE.connect()
+    # DATABASE.drop_tables([User])
     DATABASE.create_tables([User], safe=True)
     DATABASE.close()
