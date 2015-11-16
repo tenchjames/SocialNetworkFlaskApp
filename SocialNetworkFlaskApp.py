@@ -2,7 +2,7 @@ from flask import (Flask, g, render_template, flash, redirect, url_for)
 
 from flask.ext.bcrypt import check_password_hash
 from flask.ext.login import (LoginManager, login_user, logout_user,
-                             login_required)
+                             login_required, current_user)
 
 import models
 import forms
@@ -32,6 +32,7 @@ def before_request():
     """Connect to the database before each request"""
     g.db = models.DATABASE
     g.db.connect()
+    g.user = current_user
 
 
 @app.after_request
@@ -39,6 +40,18 @@ def after_request(response):
     """Close the db connection after each request"""
     g.db.close()
     return response
+
+
+@app.route('/new_post', methods=('GET', 'POST'))
+@login_required
+def post():
+    form = forms.PostForm()
+    if form.validate_on_submit():
+        models.Post.create(user=g.user._get_current_object(),
+                           content=form.content.data.strip())
+        flash("Message posted! Thanks!", "success")
+        return redirect(url_for('index'))
+    return render_template('post.html', form=form)
 
 
 @app.route('/register', methods=('GET', 'POST'))
@@ -57,7 +70,24 @@ def register():
 
 @app.route('/')
 def index():
-    return "Placeholder text"
+    stream = models.Post.select().limit(100)
+    return render_template('stream.html', stream=stream)
+
+@app.route('/stream')
+@app.route('/stream/<username>')
+def stream(username=None):
+    template = 'stream.html'
+    if username and username != current_user.username:
+        user = models.User.select().where(models.User.username**username)
+        stream = user.posts.limit(100)
+    else:
+        stream = current_user.get_stream().limit(100)
+        user = current_user
+    if username:
+        template = 'user_stream.html'
+
+    return  render_template(template, user=user, stream=stream)
+
 
 
 @app.route('/login', methods=('GET', 'POST'))
